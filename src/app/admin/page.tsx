@@ -92,7 +92,7 @@ export default function AdminPage() {
     try {
       JSON.parse(jsonText); // Validate JSON
       saveProductsToDrive();
-    } catch (err) {
+    } catch  {
       setError('Invalid JSON format. Please check your syntax.');
     }
   };
