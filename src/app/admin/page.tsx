@@ -183,11 +183,11 @@ export default function AdminPage() {
           <p><strong>Instructions:</strong></p>
           <ul className="list-disc list-inside mt-2 space-y-1">
             <li>Enter your Google Drive Bearer token in the configuration section</li>
-            <li>Click "Fetch Products from Google Drive" to load current data</li>
+            <li>Click &quot;Fetch Products from Google Drive&quot; to load current data</li>
             <li>Edit the JSON in the textarea as needed</li>
             <li>Each product must have: id (number), name (string), price (number), description (string), image (string), category (string), popular (boolean)</li>
             <li>Use valid JSON syntax</li>
-            <li>Click "Save to Google Drive" to update the data</li>
+            <li>Click &quot;Save to Google Drive&quot; to update the data</li>
             <li>Changes sync automatically across all devices every 30 seconds</li>
             <li>No need to refresh - data updates automatically</li>
           </ul>
