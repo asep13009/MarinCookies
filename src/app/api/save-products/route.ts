@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
     const { jsonData } = await request.json();
 
     // Validate JSON
-    JSON.parse(jsonData);
+    const products = JSON.parse(jsonData);
 
-    // Path to products.json
-    const filePath = path.join(process.cwd(), 'public', 'products.json');
+    // Save to Supabase
+    const { error } = await supabase
+      .from('products')
+      .upsert(products, { onConflict: 'id' });
 
-    // Write to file
-    fs.writeFileSync(filePath, jsonData, 'utf8');
+    if (error) {
+      throw error;
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

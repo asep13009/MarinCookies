@@ -5,33 +5,33 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useProductsStore } from '@/lib/products-store';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Product } from '@/types';
 
 export default function AdminPage() {
-  const { products, setProducts } = useProductsStore();
-  const [jsonText, setJsonText] = useState('');
-  const [error, setError] = useState('');
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState<Partial<Product> | null>(null);
 
   const fetchProducts = async () => {
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch('/products.json');
+      const response = await fetch('/api/products');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const textData = await response.text();
-      const parsedProducts: Product[] = JSON.parse(textData);
+      const parsedProducts: Product[] = await response.json();
       setProducts(parsedProducts);
-      setJsonText(JSON.stringify(parsedProducts, null, 2));
     } catch (err) {
       console.error('Error fetching products:', err);
       setError('Failed to fetch products. Please try again.');
@@ -40,31 +40,47 @@ export default function AdminPage() {
     }
   };
 
-  const saveProducts = async () => {
-    try {
-      const parsedProducts: Product[] = JSON.parse(jsonText);
-      setLoading(true);
-      setError('');
+  const handleAdd = () => {
+    setCurrentProduct({ name: '', price: 0, description: '', image: '', category: '', popular: false });
+    setIsDialogOpen(true);
+  };
 
-      const response = await fetch('/api/save-products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ jsonData: jsonText }),
-      });
+  const handleEdit = (product: Product) => {
+    setCurrentProduct(product);
+    setIsDialogOpen(true);
+  };
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+  const handleDelete = async (id: number) => {
+    if (confirm('Are you sure you want to delete this product?')) {
+      try {
+        const response = await fetch('/api/products', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        if (!response.ok) throw new Error('Failed to delete');
+        fetchProducts();
+      } catch (err) {
+        setError('Failed to delete product');
       }
+    }
+  };
 
-      setProducts(parsedProducts);
-      alert('Products updated successfully!');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentProduct) return;
+    try {
+      const method = currentProduct.id ? 'PUT' : 'POST';
+      const response = await fetch('/api/products', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentProduct),
+      });
+      if (!response.ok) throw new Error('Failed to save');
+      setIsDialogOpen(false);
+      fetchProducts();
     } catch (err) {
-      console.error('Error saving products:', err);
-      setError('Failed to save products. Please check your JSON and try again.');
-    } finally {
-      setLoading(false);
+      setError('Failed to save product');
     }
   };
 
@@ -77,26 +93,6 @@ export default function AdminPage() {
       setLoginError('Invalid username or password');
     }
   };
-
-  const handleSave = () => {
-    try {
-      JSON.parse(jsonText); // Validate JSON
-      saveProducts();
-    } catch {
-      setError('Invalid JSON format. Please check your syntax.');
-    }
-  };
-
-  const handleReset = () => {
-    setJsonText(JSON.stringify(products, null, 2));
-    setError('');
-  };
-
-  useEffect(() => {
-    if (products.length > 0) {
-      setJsonText(JSON.stringify(products, null, 2));
-    }
-  }, [products]);
 
   if (!isLoggedIn) {
     return (
@@ -148,56 +144,114 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Panel - Edit Products</h1>
-          <p className="text-gray-600">
-            Edit the products data below. Make sure to maintain valid JSON format.
-          </p>
+      <div className="container mx-auto px-4 max-w-6xl">
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Panel - Manage Products</h1>
+            <p className="text-gray-600">Add, edit, or delete products.</p>
+          </div>
+          <Button onClick={handleAdd} className="bg-blue-600 hover:bg-blue-700">
+            Add Product
+          </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Products JSON Editor</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Textarea
-              value={jsonText}
-              onChange={(e) => setJsonText(e.target.value)}
-              placeholder="Products JSON will appear here after fetching..."
-              className="min-h-[600px] font-mono text-sm"
-            />
+        {error && (
+          <div className="text-red-600 text-sm bg-red-50 p-3 rounded mb-4">
+            {error}
+          </div>
+        )}
 
-            {error && (
-              <div className="text-red-600 text-sm bg-red-50 p-3 rounded">
-                {error}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map((product) => (
+            <Card key={product.id}>
+              <CardHeader>
+                <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded" />
+                <CardTitle className="text-lg">{product.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600 mb-2">{product.description}</p>
+                <p className="font-semibold text-lg mb-2">Rp {product.price.toLocaleString()}</p>
+                <p className="text-sm text-gray-500 mb-2">Category: {product.category}</p>
+                <p className="text-sm text-gray-500 mb-4">Popular: {product.popular ? 'Yes' : 'No'}</p>
+                <div className="flex gap-2">
+                  <Button onClick={() => handleEdit(product)} variant="outline" size="sm">
+                    Edit
+                  </Button>
+                  <Button onClick={() => handleDelete(product.id)} variant="destructive" size="sm">
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{currentProduct?.id ? 'Edit Product' : 'Add Product'}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Name</label>
+                <Input
+                  value={currentProduct?.name || ''}
+                  onChange={(e) => setCurrentProduct({ ...currentProduct!, name: e.target.value })}
+                  required
+                />
               </div>
-            )}
-
-            <div className="flex gap-4">
-              <Button
-                onClick={handleSave}
-                disabled={loading}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                {loading ? 'Saving...' : 'Save Products'}
-              </Button>
-              <Button onClick={handleReset} variant="outline">
-                Reset
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="mt-8 text-sm text-gray-500">
-          <p><strong>Instructions:</strong></p>
-          <ul className="list-disc list-inside mt-2 space-y-1">
-            <li>Edit the JSON in the textarea as needed</li>
-            <li>Each product must have: id (number), name (string), price (number), description (string), image (string), category (string), popular (boolean)</li>
-            <li>Use valid JSON syntax</li>
-            <li>Click "Save Products" to update the data</li>
-          </ul>
-        </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Price</label>
+                <Input
+                  type="number"
+                  value={currentProduct?.price || 0}
+                  onChange={(e) => setCurrentProduct({ ...currentProduct!, price: Number(e.target.value) })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Description</label>
+                <Textarea
+                  value={currentProduct?.description || ''}
+                  onChange={(e) => setCurrentProduct({ ...currentProduct!, description: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Image URL</label>
+                <Input
+                  value={currentProduct?.image || ''}
+                  onChange={(e) => setCurrentProduct({ ...currentProduct!, image: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Category</label>
+                <Input
+                  value={currentProduct?.category || ''}
+                  onChange={(e) => setCurrentProduct({ ...currentProduct!, category: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="popular"
+                  checked={currentProduct?.popular || false}
+                  onCheckedChange={(checked) => setCurrentProduct({ ...currentProduct!, popular: !!checked })}
+                />
+                <label htmlFor="popular" className="text-sm font-medium">Popular</label>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? 'Saving...' : 'Save'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

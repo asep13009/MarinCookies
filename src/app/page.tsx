@@ -7,31 +7,15 @@ import { useProductsStore } from "@/lib/products-store";
 import { Product } from "@/types";
 
 export default function HomePage() {
-  const { products, setProducts, bearerToken } = useProductsStore();
+  const { products, setProducts } = useProductsStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
-      // Only fetch if bearer token is available
-      if (!bearerToken) {
-        setLoading(false);
-        return;
-      }
-
       try {
-        const fileId = '1g07svT2seVembqhuFE9SGYUIrNNtskdd';
-        const response = await fetch(
-          `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-          {
-            headers: {
-              'Authorization': `Bearer ${bearerToken}`,
-            },
-          }
-        );
-
+        const response = await fetch('/api/products');
         if (response.ok) {
-          const textData = await response.text();
-          const parsedProducts: Product[] = JSON.parse(textData);
+          const parsedProducts: Product[] = await response.json();
           setProducts(parsedProducts);
         }
       } catch (error) {
@@ -45,16 +29,11 @@ export default function HomePage() {
     // Initial fetch
     fetchProducts();
 
-    // Set up periodic polling every 30 seconds to check for updates (only if token exists)
-    let interval: NodeJS.Timeout | null = null;
-    if (bearerToken) {
-      interval = setInterval(fetchProducts, 30000);
-    }
+    // Set up periodic polling every 30 seconds to check for updates
+    const interval = setInterval(fetchProducts, 30000);
 
-    return () => {
-      if (interval) clearInterval(interval);
-    }; // Cleanup on unmount
-  }, [setProducts, bearerToken]);
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, [setProducts]);
 
   if (loading) {
     return (
@@ -80,18 +59,18 @@ export default function HomePage() {
                 <span className="text-yellow-200">Setiap Hari</span>
               </h1>
               <p className="text-xl mb-8 text-orange-100 leading-relaxed">
-                Nikmati kelezatan donat premium dengan berbagai varian rasa. 
+                Nikmati kelezatan donat premium dengan berbagai varian rasa.
                 Dibuat fresh setiap hari dengan bahan berkualitas tinggi.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   className="bg-white text-orange-600 hover:bg-orange-50 font-semibold px-8 py-3 text-lg"
                 >
                   Pesan Sekarang
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="lg"
                   className="border-white text-white hover:bg-white hover:text-orange-600 font-semibold px-8 py-3 text-lg"
                 >
@@ -99,11 +78,11 @@ export default function HomePage() {
                 </Button>
               </div>
             </div>
-            
+
             <div className="relative">
               <div className="relative z-10">
-                <img 
-                  src="https://media.indozone.id/crop/photo/p2/94/2025/05/06/rekitchensidoarjo-133177400.jpg" 
+                <img
+                  src="https://media.indozone.id/crop/photo/p2/94/2025/05/06/rekitchensidoarjo-133177400.jpg"
                   alt="Showcase berbagai macam donat segar dengan berbagai topping dan rasa"
                   className="rounded-2xl shadow-2xl w-full"
                 />
@@ -125,7 +104,7 @@ export default function HomePage() {
               <h3 className="text-xl font-semibold mb-2 text-gray-800">Pengiriman Cepat</h3>
               <p className="text-gray-600">Donat fresh diantar langsung ke alamat Anda dalam kondisi terbaik</p>
             </div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">💰</span>
@@ -133,7 +112,7 @@ export default function HomePage() {
               <h3 className="text-xl font-semibold mb-2 text-gray-800">Bayar di Tempat</h3>
               <p className="text-gray-600">Sistem COD yang aman dan mudah, bayar setelah barang diterima</p>
             </div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">⭐</span>
@@ -170,7 +149,7 @@ export default function HomePage() {
           <p className="text-xl mb-8 text-orange-100">
             Hubungi kami sekarang melalui WhatsApp untuk pemesanan yang lebih cepat
           </p>
-          <Button 
+          <Button
             size="lg"
             className="bg-green-500 hover:bg-green-600 text-white font-semibold px-8 py-3 text-lg"
           >
