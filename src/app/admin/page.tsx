@@ -9,90 +9,80 @@ import { useProductsStore } from '@/lib/products-store';
 import { Product } from '@/types';
 
 export default function AdminPage() {
-  const { products, setProducts, bearerToken, setBearerToken } = useProductsStore();
+  const { products, setProducts } = useProductsStore();
   const [jsonText, setJsonText] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [fileId] = useState('1g07svT2seVembqhuFE9SGYUIrNNtskdd');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
 
-  const fetchProductsFromDrive = async () => {
-    if (!bearerToken) {
-      setError('Please enter your Bearer token first.');
-      return;
-    }
-
+  const fetchProducts = async () => {
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-        {
-          headers: {
-            'Authorization': `Bearer ${bearerToken}`,
-          },
-        }
-      );
-
+      const response = await fetch('/products.json');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const textData = await response.text();
       const parsedProducts: Product[] = JSON.parse(textData);
-      setProducts(parsedProducts); // Update local store immediately
+      setProducts(parsedProducts);
       setJsonText(JSON.stringify(parsedProducts, null, 2));
     } catch (err) {
       console.error('Error fetching products:', err);
-      setError('Failed to fetch products from Google Drive. Please check your token and try again.');
+      setError('Failed to fetch products. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const saveProductsToDrive = async () => {
-    if (!bearerToken) {
-      setError('Please enter your Bearer token first.');
-      return;
-    }
-
+  const saveProducts = async () => {
     try {
       const parsedProducts: Product[] = JSON.parse(jsonText);
       setLoading(true);
       setError('');
 
-      const response = await fetch(
-        `https://www.googleapis.com/upload/drive/v3/files/${fileId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${bearerToken}`,
-            'Content-Type': 'text/plain',
-          },
-          body: jsonText,
-        }
-      );
+      const response = await fetch('/api/save-products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ jsonData: jsonText }),
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Update local store immediately
       setProducts(parsedProducts);
-      alert('Products updated successfully on Google Drive!');
+      alert('Products updated successfully!');
     } catch (err) {
       console.error('Error saving products:', err);
-      setError('Failed to save products to Google Drive. Please check your token and try again.');
+      setError('Failed to save products. Please check your JSON and try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogin = () => {
+    if (username === 'admin' && password === 'admin123') {
+      setIsLoggedIn(true);
+      setLoginError('');
+      fetchProducts();
+    } else {
+      setLoginError('Invalid username or password');
     }
   };
 
   const handleSave = () => {
     try {
       JSON.parse(jsonText); // Validate JSON
-      saveProductsToDrive();
-    } catch  {
+      saveProducts();
+    } catch {
       setError('Invalid JSON format. Please check your syntax.');
     }
   };
@@ -108,6 +98,54 @@ export default function AdminPage() {
     }
   }, [products]);
 
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Admin Login</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                Username
+              </label>
+              <Input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter username"
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
+                className="w-full"
+              />
+            </div>
+            {loginError && (
+              <div className="text-red-600 text-sm bg-red-50 p-3 rounded">
+                {loginError}
+              </div>
+            )}
+            <Button onClick={handleLogin} className="w-full">
+              Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-4xl">
@@ -117,34 +155,6 @@ export default function AdminPage() {
             Edit the products data below. Make sure to maintain valid JSON format.
           </p>
         </div>
-
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Google Drive Configuration</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label htmlFor="bearer-token" className="block text-sm font-medium text-gray-700 mb-2">
-                Bearer Token
-              </label>
-              <Input
-                id="bearer-token"
-                type="password"
-                value={bearerToken}
-                onChange={(e) => setBearerToken(e.target.value)}
-                placeholder="Enter your Google Drive Bearer token"
-                className="w-full"
-              />
-            </div>
-            <Button
-              onClick={fetchProductsFromDrive}
-              disabled={loading || !bearerToken}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {loading ? 'Loading...' : 'Fetch Products from Google Drive'}
-            </Button>
-          </CardContent>
-        </Card>
 
         <Card>
           <CardHeader>
@@ -167,10 +177,10 @@ export default function AdminPage() {
             <div className="flex gap-4">
               <Button
                 onClick={handleSave}
-                disabled={loading || !bearerToken}
+                disabled={loading}
                 className="bg-green-600 hover:bg-green-700"
               >
-                {loading ? 'Saving...' : 'Save to Google Drive'}
+                {loading ? 'Saving...' : 'Save Products'}
               </Button>
               <Button onClick={handleReset} variant="outline">
                 Reset
@@ -182,14 +192,10 @@ export default function AdminPage() {
         <div className="mt-8 text-sm text-gray-500">
           <p><strong>Instructions:</strong></p>
           <ul className="list-disc list-inside mt-2 space-y-1">
-            <li>Enter your Google Drive Bearer token in the configuration section</li>
-            <li>Click &quot;Fetch Products from Google Drive&quot; to load current data</li>
             <li>Edit the JSON in the textarea as needed</li>
             <li>Each product must have: id (number), name (string), price (number), description (string), image (string), category (string), popular (boolean)</li>
             <li>Use valid JSON syntax</li>
-            <li>Click &quot;Save to Google Drive&quot; to update the data</li>
-            <li>Changes sync automatically across all devices every 30 seconds</li>
-            <li>No need to refresh - data updates automatically</li>
+            <li>Click "Save Products" to update the data</li>
           </ul>
         </div>
       </div>
