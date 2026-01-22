@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { Product } from '@/types';
 import { supabase } from '@/lib/supabase';
+import imageCompression from 'browser-image-compression';
 
 export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -93,8 +94,16 @@ export default function AdminPage() {
 
       // Upload image if selected
       if (selectedImage) {
+        // Compress the image before uploading
+        const options = {
+          maxSizeMB: 1, // Maximum size in MB
+          maxWidthOrHeight: 800, // Maximum width or height
+          useWebWorker: true, // Use web worker for better performance
+        };
+        const compressedFile = await imageCompression(selectedImage, options);
+
         const formData = new FormData();
-        formData.append('image', selectedImage);
+        formData.append('image', compressedFile);
         const uploadResponse = await fetch('/api/upload-image', {
           method: 'POST',
           body: formData,
