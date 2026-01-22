@@ -32,7 +32,7 @@ export const APP_CONFIG = {
   STORE_NAME: 'MarinCookies',
   STORE_PHONE: '0851-8348-0050',
   STORE_EMAIL: 'info@MarinCookies.com',
-  STORE_ADDRESS: 'Jl. Manis Raya No. 123, Jakarta',
+  STORE_ADDRESS: 'Cintanagra, Jatinagara Kabupaten Ciamis',
   // ...
 };
 ```

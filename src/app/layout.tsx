@@ -92,7 +92,7 @@ export default function RootLayout({
                   <div className="space-y-2 text-orange-200">
                     <p>📞 WhatsApp: 0851-8348-0050</p>
                     <p>📧 Email: info@MarinCookies.com</p>
-                    <p>📍 Jl. Manis Raya No. 123, Jakarta</p>
+                    <p>📍 Cintanagra, Jatinagara Kabupaten Ciamis</p>
                   </div>
                 </div>
               </div>
