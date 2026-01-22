@@ -189,11 +189,14 @@ export default function CheckoutForm({ onBack }: CheckoutFormProps) {
                     <p className="font-semibold text-green-800">COD (Cash on Delivery)</p>
                     <p className="text-sm text-green-600">Bayar saat barang diterima</p>
                   </div>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                 
+                  {/* <Badge variant="secondary" className="bg-green-100 text-green-800">
                     Dipilih
-                  </Badge>
+                  </Badge> */}
                 </div>
+                <i>* saat ini, pembayaran hanya menggunakan fitur COD</i>
               </CardContent>
+               
             </Card>
           </form>
         </div>
