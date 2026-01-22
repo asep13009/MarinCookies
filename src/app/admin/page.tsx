@@ -230,7 +230,7 @@ export default function AdminPage() {
                 <Input
                   value={currentProduct?.category || ''}
                   onChange={(e) => setCurrentProduct({ ...currentProduct!, category: e.target.value })}
-                  required
+                 
                 />
               </div>
               <div className="flex items-center space-x-2">
