@@ -10,6 +10,13 @@ export default function HomePage() {
   const { products, setProducts } = useProductsStore();
   const [loading, setLoading] = useState(true);
 
+  const scrollToMenu = () => {
+    const menuSection = document.getElementById('menu-donat');
+    if (menuSection) {
+      menuSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -66,16 +73,11 @@ export default function HomePage() {
                 <Button
                   size="lg"
                   className="bg-white text-orange-600 hover:bg-orange-50 font-semibold px-8 py-3 text-lg"
+                  onClick={scrollToMenu}
                 >
                   Pesan Sekarang
                 </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-white text-white hover:bg-white hover:text-orange-600 font-semibold px-8 py-3 text-lg"
-                >
-                  Lihat Menu
-                </Button>
+                
               </div>
             </div>
 
@@ -125,7 +127,7 @@ export default function HomePage() {
       </section>
 
       {/* Products Section */}
-      <section className="py-16 bg-gradient-to-b from-orange-50 to-white">
+      <section id="menu-donat" className="py-16 bg-gradient-to-b from-orange-50 to-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-800 mb-4">Menu Donat Kami</h2>
