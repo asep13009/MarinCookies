@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
 import { useProductsStore } from "@/lib/products-store";
 import { Product } from "@/types";
+import { getWhatsAppUrl } from "@/lib/config";
 
 export default function HomePage() {
   const { products, setProducts } = useProductsStore();
@@ -15,6 +16,12 @@ export default function HomePage() {
     if (menuSection) {
       menuSection.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleWhatsAppClick = () => {
+    const message = "Hallo Sahabat MarinCookies, Mau ngobrol dengan admin kami ?, \n Silahkan Chat dengan Admin kami :).\nSaya mau pesan ...";
+    const whatsappUrl = getWhatsAppUrl(message);
+    window.open(whatsappUrl, '_blank');
   };
 
   useEffect(() => {
@@ -154,6 +161,7 @@ export default function HomePage() {
           <Button
             size="lg"
             className="bg-green-500 hover:bg-green-600 text-white font-semibold px-8 py-3 text-lg"
+            onClick={handleWhatsAppClick}
           >
             📱 Chat WhatsApp
           </Button>
