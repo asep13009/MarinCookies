@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   description: "Pesan cookies dan donat segar dengan mudah. Berbagai varian rasa, pembayaran COD, dan pengiriman cepat ke seluruh kota.",
   keywords: "cookies, donat, toko cookies, pesan cookies online, cookies segar, COD, pengiriman cookies",
   authors: [{ name: "MarinCookies Team" }],
+  icons: {
+    icon: "/logo-atas.png",
+  },
   openGraph: {
     title: "MarinCookies - Toko Cookies & Donat Online Terbaik",
     description: "Pesan cookies dan donat segar dengan mudah. Berbagai varian rasa, pembayaran COD, dan pengiriman cepat.",
