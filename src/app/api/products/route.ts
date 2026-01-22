@@ -46,6 +46,25 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { id } = await request.json();
+
+    // First, get the product to retrieve the image URL
+    const { data: product, error: fetchError } = await supabase
+      .from('products')
+      .select('image')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Delete the image from storage if it exists
+    if (product?.image) {
+      const imagePath = product.image.split('/').pop(); // Extract filename from URL
+      if (imagePath) {
+        await supabase.storage.from('product_image').remove([imagePath]);
+      }
+    }
+
+    // Delete the product from database
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) throw error;
     return NextResponse.json({ success: true });

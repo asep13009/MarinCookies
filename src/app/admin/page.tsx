@@ -19,6 +19,7 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Partial<Product> | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -42,11 +43,13 @@ export default function AdminPage() {
 
   const handleAdd = () => {
     setCurrentProduct({ name: '', price: 0, description: '', image: '', category: '', popular: false });
+    setSelectedImage(null);
     setIsDialogOpen(true);
   };
 
   const handleEdit = (product: Product) => {
     setCurrentProduct(product);
+    setSelectedImage(null);
     setIsDialogOpen(true);
   };
 
@@ -70,14 +73,31 @@ export default function AdminPage() {
     e.preventDefault();
     if (!currentProduct) return;
     try {
+      let imageUrl = currentProduct.image;
+
+      // Upload image if selected
+      if (selectedImage) {
+        const formData = new FormData();
+        formData.append('image', selectedImage);
+        const uploadResponse = await fetch('/api/upload-image', {
+          method: 'POST',
+          body: formData,
+        });
+        if (!uploadResponse.ok) throw new Error('Failed to upload image');
+        const uploadData = await uploadResponse.json();
+        imageUrl = uploadData.url;
+      }
+
+      const productData = { ...currentProduct, image: imageUrl };
       const method = currentProduct.id ? 'PUT' : 'POST';
       const response = await fetch('/api/products', {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentProduct),
+        body: JSON.stringify(productData),
       });
       if (!response.ok) throw new Error('Failed to save');
       setIsDialogOpen(false);
+      setSelectedImage(null);
       fetchProducts();
     } catch (err) {
       setError('Failed to save product');
@@ -218,12 +238,15 @@ export default function AdminPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Image URL</label>
+                <label className="block text-sm font-medium mb-1">Image</label>
                 <Input
-                  value={currentProduct?.image || ''}
-                  onChange={(e) => setCurrentProduct({ ...currentProduct!, image: e.target.value })}
-                  required
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
                 />
+                {currentProduct?.image && !selectedImage && (
+                  <p className="text-sm text-gray-500 mt-1">Current image: {currentProduct.image}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Category</label>
