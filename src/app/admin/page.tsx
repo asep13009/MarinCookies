@@ -22,6 +22,8 @@ export default function AdminPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Partial<Product> | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -57,6 +59,7 @@ export default function AdminPage() {
 
   const handleDelete = async (id: number) => {
     if (confirm('Are you sure you want to delete this product?')) {
+      setDeletingId(id);
       try {
         const response = await fetch('/api/products', {
           method: 'DELETE',
@@ -67,6 +70,8 @@ export default function AdminPage() {
         fetchProducts();
       } catch (err) {
         setError('Failed to delete product');
+      } finally {
+        setDeletingId(null);
       }
     }
   };
@@ -74,6 +79,7 @@ export default function AdminPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentProduct) return;
+    setSaving(true);
     try {
       let imageUrl = currentProduct.image;
 
@@ -126,6 +132,8 @@ export default function AdminPage() {
       fetchProducts();
     } catch (err) {
       setError('Failed to save product');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -195,7 +203,7 @@ export default function AdminPage() {
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Panel - Manage Products</h1>
             <p className="text-gray-600">Add, edit, or delete products.</p>
           </div>
-          <Button onClick={handleAdd} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={handleAdd} className="bg-blue-600 hover:bg-blue-700" disabled={saving}>
             Add Product
           </Button>
         </div>
@@ -219,11 +227,11 @@ export default function AdminPage() {
                 <p className="text-sm text-gray-500 mb-2">Category: {product.category}</p>
                 <p className="text-sm text-gray-500 mb-4">Popular: {product.popular ? 'Yes' : 'No'}</p>
                 <div className="flex gap-2">
-                  <Button onClick={() => handleEdit(product)} variant="outline" size="sm">
+                  <Button onClick={() => handleEdit(product)} variant="outline" size="sm" disabled={saving}>
                     Edit
                   </Button>
-                  <Button onClick={() => handleDelete(product.id)} variant="destructive" size="sm">
-                    Delete
+                  <Button onClick={() => handleDelete(product.id)} variant="destructive" size="sm" disabled={deletingId === product.id}>
+                    {deletingId === product.id ? 'Deleting...' : 'Delete'}
                   </Button>
                 </div>
               </CardContent>
@@ -293,8 +301,8 @@ export default function AdminPage() {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? 'Saving...' : 'Save'}
+                <Button type="submit" disabled={saving}>
+                  {saving ? 'Saving...' : 'Save'}
                 </Button>
               </DialogFooter>
             </form>
