@@ -26,7 +26,7 @@ export interface Order {
   customer: Customer;
   items: CartItem[];
   total: number;
-  paymentMethod: 'COD';
+  paymentMethod: 'COD' | 'transfer';
   status: 'pending' | 'confirmed' | 'delivered';
   createdAt: Date;
 }

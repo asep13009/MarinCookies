@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useCartStore } from '@/lib/cart-store';
 import { sendToWhatsApp, validatePhoneNumber, formatPrice } from '@/lib/whatsapp';
+import { APP_CONFIG } from '@/lib/config';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MapPin, Phone, User, MessageSquare, CreditCard } from 'lucide-react';
 
 const checkoutSchema = z.object({
@@ -31,7 +33,8 @@ interface CheckoutFormProps {
 export default function CheckoutForm({ onBack }: CheckoutFormProps) {
   const { items, getTotalPrice, clearCart, closeCart } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'COD' | 'transfer'>('COD');
+
   const totalPrice = getTotalPrice();
   
   const {
@@ -45,19 +48,19 @@ export default function CheckoutForm({ onBack }: CheckoutFormProps) {
 
   const onSubmit = async (data: CheckoutFormData) => {
     setIsSubmitting(true);
-    
+
     try {
       // Send to WhatsApp
-      sendToWhatsApp(items, data, totalPrice);
-      
+      sendToWhatsApp(items, data, totalPrice, selectedPaymentMethod);
+
       // Clear cart and close
       clearCart();
       closeCart();
       reset();
-      
+
       // Show success message (optional)
       alert('Pesanan berhasil dikirim ke WhatsApp! Silakan tunggu konfirmasi dari kami.');
-      
+
     } catch (error) {
       console.error('Error sending order:', error);
       alert('Terjadi kesalahan. Silakan coba lagi.');
@@ -182,21 +185,44 @@ export default function CheckoutForm({ onBack }: CheckoutFormProps) {
                   Metode Pembayaran
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-3 p-3 border rounded-lg bg-green-50 border-green-200">
-                  <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-green-800">COD (Cash on Delivery)</p>
-                    <p className="text-sm text-green-600">Bayar saat barang diterima</p>
+              <CardContent className="space-y-4">
+                <RadioGroup
+                  value={selectedPaymentMethod}
+                  onValueChange={(value) => setSelectedPaymentMethod(value as 'COD' | 'transfer')}
+                  className="space-y-3"
+                >
+                  <div className="flex items-center space-x-3 p-3 border rounded-lg bg-green-50 border-green-200">
+                    <RadioGroupItem value="COD" id="cod" />
+                    <div className="flex-1">
+                      <Label htmlFor="cod" className="font-semibold text-green-800 cursor-pointer">
+                        {APP_CONFIG.PAYMENT_METHODS.COD.name}
+                      </Label>
+                      <p className="text-sm text-green-600">{APP_CONFIG.PAYMENT_METHODS.COD.description}</p>
+                    </div>
                   </div>
-                 
-                  {/* <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    Dipilih
-                  </Badge> */}
-                </div>
-                <i>* saat ini, pembayaran hanya menggunakan fitur COD</i>
+
+                  <div className="flex items-center space-x-3 p-3 border rounded-lg bg-blue-50 border-blue-200">
+                    <RadioGroupItem value="transfer" id="transfer" />
+                    <div className="flex-1">
+                      <Label htmlFor="transfer" className="font-semibold text-blue-800 cursor-pointer">
+                        {APP_CONFIG.PAYMENT_METHODS.TRANSFER.name}
+                      </Label>
+                      <p className="text-sm text-blue-600">{APP_CONFIG.PAYMENT_METHODS.TRANSFER.description}</p>
+                    </div>
+                  </div>
+                </RadioGroup>
+
+                {selectedPaymentMethod === 'transfer' && (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="font-semibold text-blue-800 mb-2">Detail Rekening:</h4>
+                    <div className="space-y-1 text-sm">
+                      <p><strong>Nomor Dana:</strong> {APP_CONFIG.PAYMENT_METHODS.TRANSFER.accountNumber}</p>
+                      <p><strong>Atas Nama:</strong> {APP_CONFIG.PAYMENT_METHODS.TRANSFER.accountName}</p>
+                      <p className="text-blue-700 mt-2">{APP_CONFIG.PAYMENT_METHODS.TRANSFER.instructions}</p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
-               
             </Card>
           </form>
         </div>

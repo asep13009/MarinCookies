@@ -12,11 +12,16 @@ export const formatPrice = (price: number): string => {
 export const generateWhatsAppMessage = (
   items: CartItem[],
   customer: Customer,
-  total: number
+  total: number,
+  paymentMethod: 'COD' | 'transfer' = 'COD'
 ): string => {
   const itemsList = items
     .map(item => `- ${item.quantity}x ${item.product.name} (${formatPrice(item.product.price)})`)
     .join('\n');
+
+  const paymentMethodText = paymentMethod === 'COD'
+    ? 'COD (Cash on Delivery)'
+    : `Transfer ${APP_CONFIG.PAYMENT_METHODS.TRANSFER.name}`;
 
   const message = `${APP_CONFIG.WHATSAPP_GREETING}
 
@@ -24,7 +29,7 @@ export const generateWhatsAppMessage = (
 ${itemsList}
 
 💰 Total: ${formatPrice(total)}
-💳 Pembayaran: COD (Cash on Delivery)
+💳 Pembayaran: ${paymentMethodText}
 
 👤 Data Pelanggan:
 Nama: ${customer.name}
@@ -40,13 +45,14 @@ export const sendToWhatsApp = (
   items: CartItem[],
   customer: Customer,
   total: number,
+  paymentMethod: 'COD' | 'transfer' = 'COD',
   phoneNumber?: string // Optional override untuk nomor WhatsApp
 ): void => {
-  const message = generateWhatsAppMessage(items, customer, total);
+  const message = generateWhatsAppMessage(items, customer, total, paymentMethod);
   const encodedMessage = encodeURIComponent(message);
   const targetNumber = phoneNumber || getWhatsAppNumber();
   const whatsappUrl = `https://wa.me/${targetNumber}?text=${encodedMessage}`;
-  
+
   // Open WhatsApp in new tab/window
   window.open(whatsappUrl, '_blank');
 };

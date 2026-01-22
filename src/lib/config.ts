@@ -21,7 +21,22 @@ export const APP_CONFIG = {
   
   // Pesan WhatsApp template
   WHATSAPP_GREETING: 'Halo, saya ingin memesan:',
-  WHATSAPP_CLOSING: 'Mohon konfirmasi ketersediaan dan estimasi pengiriman. Terima kasih!'
+  WHATSAPP_CLOSING: 'Mohon konfirmasi ketersediaan dan estimasi pengiriman. Terima kasih!',
+
+  // Informasi pembayaran transfer
+  PAYMENT_METHODS: {
+    COD: {
+      name: 'COD (Cash on Delivery)',
+      description: 'Bayar saat barang diterima'
+    },
+    TRANSFER: {
+      name: 'Transfer Dana',
+      description: 'Transfer ke rekening Dana',
+      accountNumber: '085183480050',
+      accountName: 'Rini Meirani',
+      instructions: 'Silakan transfer ke nomor Dana di atas dan kirim bukti transfer ke WhatsApp kami.'
+    }
+  }
 };
 
 // Fungsi untuk memvalidasi dan memformat nomor WhatsApp
