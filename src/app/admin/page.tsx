@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Product } from '@/types';
+import { supabase } from '@/lib/supabase';
 
 export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -74,6 +75,21 @@ export default function AdminPage() {
     if (!currentProduct) return;
     try {
       let imageUrl = currentProduct.image;
+
+      // Delete old image if editing and new image is selected
+      if (currentProduct.id && selectedImage && currentProduct.image) {
+        const oldImageUrl = currentProduct.image;
+        const oldFileName = oldImageUrl.split('/').pop(); // Extract filename from URL
+        if (oldFileName) {
+          const { error: deleteError } = await supabase.storage
+            .from('product_image')
+            .remove([oldFileName]);
+          if (deleteError) {
+            console.error('Failed to delete old image:', deleteError);
+            // Continue with upload even if delete fails
+          }
+        }
+      }
 
       // Upload image if selected
       if (selectedImage) {
