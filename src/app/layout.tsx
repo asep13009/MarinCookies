@@ -83,7 +83,7 @@ export default function RootLayout({
                   <div className="space-y-2 text-orange-200">
                     <p>Senin - Jumat: 08:00 - 21:00</p>
                     <p>Sabtu - Minggu: 09:00 - 22:00</p>
-                    <p>Hari Libur: 10:00 - 20:00</p>
+                    
                   </div>
                 </div>
                 

@@ -12,8 +12,7 @@ export const APP_CONFIG = {
   // Jam operasional
   OPERATING_HOURS: {
     weekdays: 'Senin - Jumat: 08:00 - 21:00',
-    weekend: 'Sabtu - Minggu: 09:00 - 22:00',
-    holiday: 'Hari Libur: 10:00 - 20:00'
+    weekend: 'Sabtu - Minggu: 09:00 - 22:00'
   },
   
   // Pengaturan aplikasi
