@@ -94,14 +94,14 @@ export default function RootLayout({
                   <h4 className="font-semibold mb-4">Hubungi Kami</h4>
                   <div className="space-y-2 text-orange-200">
                     <p>📞 WhatsApp: 0851-8348-0050</p>
-                    <p>📧 Email: info@MarinCookies.com</p>
-                    <p>📍 Cintanagra, Jatinagara Kabupaten Ciamis</p>
+                    <p>📧 Email: marin.cookies.donut@gmail.com</p>
+                    <p>📍 Cintanagra, Jatinagara, Kabupaten Ciamis</p>
                   </div>
                 </div>
               </div>
               
               <div className="border-t border-orange-700 mt-8 pt-8 text-center text-orange-200">
-                <p>&copy; 2024 MarinCookies. Semua hak cipta dilindungi.</p>
+                <p>&copy; 2026 MarinCookies. Semua hak cipta dilindungi.</p>
               </div>
             </div>
           </footer>

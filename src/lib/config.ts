@@ -6,7 +6,7 @@ export const APP_CONFIG = {
   // Informasi toko
   STORE_NAME: 'MarinCookies',
   STORE_PHONE: '0851-8348-0050',
-  STORE_EMAIL: 'info@marincookies.com',
+  STORE_EMAIL: 'marin.cookies.donut@gmail.com',
   STORE_ADDRESS: 'Cintanagra, Jatinagara Kabupaten Ciamis',
   
   // Jam operasional
